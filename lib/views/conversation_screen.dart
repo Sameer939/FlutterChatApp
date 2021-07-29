@@ -1,13 +1,16 @@
-
 import 'package:chat_app/helper/constants.dart';
 import 'package:chat_app/services/database.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:chat_app/utils/universal_variables.dart';
+import 'package:clipboard/clipboard.dart';
+import 'package:emoji_picker/emoji_picker.dart';
 import 'package:flutter/material.dart';
+
 
 class ConversationScreen extends StatefulWidget {
   // const ConversationScreen({ Key? key }) : super(key: key);
   final String chatRoomId;
-  ConversationScreen(this.chatRoomId);
+  final String recieverUserName;
+  ConversationScreen(this.chatRoomId, this.recieverUserName);
   @override
   _ConversationScreenState createState() => _ConversationScreenState();
 }
@@ -17,27 +20,35 @@ class _ConversationScreenState extends State<ConversationScreen> {
   DatabaseMethods databaseMethods = new DatabaseMethods();
   TextEditingController messageController = new TextEditingController();
   Stream chatMessageStream;
+  bool isWriting = false;
+  bool showEmojiPicker = false;
+  FocusNode textFieldFocus = new FocusNode();
+  
+  Widget chatMessageList(){
+    return Container(
+      child: StreamBuilder(
+        stream: chatMessageStream,
+        builder: (context, snapshot){
+          return snapshot.hasData ? ListView.builder(
+            reverse: true,
+            itemCount: snapshot.data.docs.length,
+            itemBuilder: (context,index){
+              String message = snapshot.data.docs[index]["message"];
 
+              return MessageTile(
+                message,
+                Constants.myName == snapshot.data.docs[index]["sendBy"],
+                snapshot.data.docs[index]["time"],
+                );
+            }
+          ) :Container() ;
+        }
 
-  Widget ChatMessageList(){
-    return StreamBuilder(
-      stream: chatMessageStream,
-      builder: (context, snapshot){
-        return snapshot.hasData ? ListView.builder(
-          itemCount: snapshot.data.docs.length,
-          itemBuilder: (context,index){
-            // print("length hai bhai yeh = ${snapshot.data.docs.length}");
-            
-            return MessageTile(
-              snapshot.data.docs[index]["message"],
-              Constants.myName == snapshot.data.docs[index]["sendBy"],
-              );
-          }
-        ) :Container() ;
-      }
-
+      ),
     );
   }
+
+
   sendMessage(){
     if(messageController.text.isNotEmpty){ 
        Map<String, dynamic> messageMap = {
@@ -46,9 +57,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
       "time" : DateTime.now().microsecondsSinceEpoch,
     }; 
     databaseMethods.addConversationMessage(widget.chatRoomId, messageMap);
+    
     messageController.text = "";
     }
   }
+
   @override
   void initState() {
     databaseMethods.getConversationMessage(widget.chatRoomId).then((val){
@@ -60,112 +73,234 @@ class _ConversationScreenState extends State<ConversationScreen> {
     super.initState();
   }
 
+  showKeyboard() => textFieldFocus.requestFocus();
+  hideKeyboard() => textFieldFocus.unfocus();
+
+  hideEmojiContainer(){
+    setState(() {
+      showEmojiPicker = false;
+    });
+  }
+
+  // Close the Emoji Container if it is already OPEN
+  toggleEmojiContainer(){
+      setState(() {
+        showEmojiPicker = !showEmojiPicker;
+      });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ApplicationToolbar(),
-      body: Container(
-        child: Stack(
-          children: [
-            ChatMessageList(),
-             Container(
-               alignment: Alignment.bottomCenter,
-               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 24,vertical: 16),
-                color: Color(0x54FFFFFF),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: messageController,
-                        style: TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                        hintText: "Message...",
-                        hintStyle: TextStyle(color: Colors.white54),
-                        border: InputBorder.none,
-                      ),
-                      ),
-             
-                    ),
-                    GestureDetector(
-                      onTap: (){
-                        sendMessage();
-                      },
-                      child: Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors:[
-                              const Color(0x36FFFFFF),
-                              const Color(0x0FFFFFFF),
-                            ]
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: EdgeInsets.all(12),
-                        child: Image.asset("assets/images/send.png",)),
-                    ),
-                  ],
+      appBar: AppBar(
+        title: 
+          Container(
+            child: Text(widget.recieverUserName,
+              style: TextStyle(
+                fontSize: 28.0,
+                fontWeight: FontWeight.bold,
                 ),
-              ),
-             ),
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.more_horiz),
+              iconSize: 30.0,
+              color: Colors.white,
+              onPressed: (){
+
+              },
+            )
           ],
+      ),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Container(
+          child: Column(
+            children: [
+              Flexible(
+                child: chatMessageList() ,
+              ),
+              chatControls(),
+              showEmojiPicker ? Container(child: emojiContainer(),) 
+              : Container(),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  emojiContainer(){
+    return EmojiPicker(
+      bgColor: UniversalVariables.separatorColor,
+      indicatorColor: UniversalVariables.blueColor,
+      rows: 3,
+      columns: 7,
+      onEmojiSelected: (emoji, category) {
+        messageController.text 
+          = messageController.text + emoji.emoji;
+      },
+      recommendKeywords: ["face","happy","party","sad"],
+      numRecommended: 20,
+    );
+  }
+
+  
+  // For sending message in convo Screen 
+  Widget chatControls(){
+    
+   return Container(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+  
+        padding: EdgeInsets.all(10),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                  controller: messageController,
+                  focusNode: textFieldFocus,
+                  onTap: () => hideEmojiContainer() ,
+                  textCapitalization : TextCapitalization.sentences, 
+                  style: TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "Type a message",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(50.0),
+                      ),
+                      borderSide: BorderSide.none,
+                      ),
+                    contentPadding: 
+                      EdgeInsets.symmetric(horizontal: 20,vertical: 5),
+                      filled: true,
+                      fillColor: UniversalVariables.separatorColor,
+                      suffixIcon: IconButton(
+                        splashColor: Colors.white,
+                        highlightColor: Colors.white,
+                        onPressed: () {
+                          if(!showEmojiPicker){
+                            hideKeyboard();
+                          }
+                          else {
+                            showKeyboard();
+                          }
+                          toggleEmojiContainer();
+                        },
+                        icon: Icon(Icons.face , color: Colors.white,),
+                      )
+                ),
+              ),
+            ),
+            Container(
+                  margin: EdgeInsets.only(left: 10),
+                  decoration: BoxDecoration(
+                      color: UniversalVariables.blueColor,
+                      shape: BoxShape.circle),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.send,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => sendMessage(),
+                  )
+              )
+          ],
+        ),
+      ),
+    );
+
+
+  }
+
+
 }
 
 
 class MessageTile extends StatelessWidget {
   final String message;
   final bool isSendByMe;
-  MessageTile(this.message,this.isSendByMe);
+  final int sentTime;
+  MessageTile(this.message,this.isSendByMe,this.sentTime);
+
+  timeData(int time){
+    return  DateTime
+    .fromMicrosecondsSinceEpoch(sentTime)
+    .toString()
+    .substring(11,16);
+  }
 
   @override
   Widget build(BuildContext context) {
 
     
-    return Container(
+    return GestureDetector(
+      onLongPress: () async{
+        await FlutterClipboard.copy(message);
+        ScaffoldMessenger.of(context)
+        .showSnackBar(
+        SnackBar(content: Text("Copied to ClipBoard"))
+        );
+      },
       child: Container(
-      padding: EdgeInsets.only(
-        left: isSendByMe ? 0:  10,
-        right: isSendByMe ? 10 : 0),
-
-        margin: EdgeInsets.symmetric(vertical: 8),
-        width: MediaQuery.of(context).size.width,
-        alignment: isSendByMe ? 
-          Alignment.centerRight 
-          : Alignment.centerLeft,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24,vertical: 16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                 colors: isSendByMe ? [
-                const Color(0xff007EF4),
-                const Color(0xff2A75BC)
-              ]
-                  : [
-                const Color(0x1AFFFFFF),
-                const Color(0x1AFFFFFF)
-              ],
-              ),
-              borderRadius: isSendByMe ?
-                BorderRadius.only(
-                  topLeft: Radius.circular(23),
-                  topRight: Radius.circular(23),
-                  bottomLeft: Radius.circular(23)
-                ): BorderRadius.only(
-                  topLeft: Radius.circular(23),
-                  topRight: Radius.circular(23),
-                  bottomRight: Radius.circular(23)
-                )
-            ),
-            child: Text(message,style: TextStyle(
-                color: Colors.white, fontSize: 16
-                 ),
+          padding: EdgeInsets.only(
+            left: isSendByMe ? 0:  10,
+            right: isSendByMe ? 10 : 0
+          ),
+    
+          margin: EdgeInsets.symmetric(vertical: 8),
+          width: MediaQuery.of(context).size.width,
+          alignment: isSendByMe ? 
+            Alignment.centerRight 
+            : Alignment.centerLeft,
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.65,
+            ) ,
+            padding: EdgeInsets.symmetric(horizontal: 24,vertical: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                   colors: isSendByMe ? [
+                  const Color(0xff007EF4),
+                  const Color(0xff2A75BC)
+                ]
+                    : [
+                  const Color(0x1AFFFFFF),
+                  const Color(0x1AFFFFFF)
+                ],
                 ),
+                borderRadius: isSendByMe ?
+                  BorderRadius.only(
+                    topLeft: Radius.circular(23),
+                    topRight: Radius.circular(23),
+                    bottomLeft: Radius.circular(23)
+                  ): BorderRadius.only(
+                    topLeft: Radius.circular(23),
+                    topRight: Radius.circular(23),
+                    bottomRight: Radius.circular(23)
+                  )
+              ),
+              child: Column(
+                crossAxisAlignment :CrossAxisAlignment.end,
+                children: [
+                    Text(message,style: TextStyle(
+                        color: Colors.white, fontSize: 16
+                       ),
+                      ),
+                  SizedBox(height: 6.0,),
+                    Text(timeData(sentTime),style: TextStyle(
+                        color: Colors.white, fontSize: 11
+                      ),
+                    ),
+                ],
+              ),
+          ),
         ),
       ),
     );
