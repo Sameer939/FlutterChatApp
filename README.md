@@ -1,21 +1,20 @@
 # chat_app
+## Microsoft Engage 2021
 
-A new Flutter project. --> A simple Chat App using Flutter!
+A fully functional Flutter Application with Chatting(group/single), Video Calling .
 
 ## Getting Started
+- `git clone https://github.com/gauriwanare/FlutterApp.git`
+- `cd FlutterApp`
+- `flutter packages get`
+- `flutter run`
 
-This project is a starting point for a Flutter application.
+# Screenshots
+## Sign up and Sign in screens 
+<img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/signup.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/Signin.jpeg"/> 
 
-A few resources to get you started if this is your first Flutter project:
+## Chat Screen And Chat
+<img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/SingleChat.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/SingleChatConvo.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/GroupChats.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/GroupChatConvo.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/AddingToGroup.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/LeaveGroup.jpeg"/> 
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
-#To-do
-1) Add Google Sign-in
-2) Fix the Chat Screen
-3) Add Video Call Feature
+## Video Call 
+<img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/videoCallRoomPage.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/InvideoCall.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/videoCallFeatures.jpeg"/> <img width="180" height="350" src="https://github.com/gauriwanare/FlutterApp/blob/main/SS/SharingVideoCallToApps.jpeg"/> 
