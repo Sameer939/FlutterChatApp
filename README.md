@@ -1,10 +1,9 @@
 # chat_app
-## Microsoft Engage 2021
 
 A fully functional Flutter Application with Chatting(group/single), Video Calling .
 
 ## Getting Started
-- `git clone https://github.com/gauriwanare/FlutterApp.git`
+- `git clone https://github.com/Sameer939/FlutterChatApp.git`
 - `cd FlutterApp`
 - `flutter packages get`
 - `flutter run`
