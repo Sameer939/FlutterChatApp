@@ -2,7 +2,7 @@
 
 A fully functional Flutter Application with Chatting(group/single), Video Calling .
 
-## App Apk - https://drive.google.com/file/d/1R3ELJH4jJje_muhMFu7pCdacF2TznB4l/view?usp=drivesdk 
+## App Apk - https://drive.google.com/file/d/1R3ELJH4jJje_muhMFu7pCdacF2TznB4l/view?usp=sharing
 ## Getting Started
 - `git clone https://github.com/Sameer939/FlutterChatApp.git`
 - `cd FlutterApp`
